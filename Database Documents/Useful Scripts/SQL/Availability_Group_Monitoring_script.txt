@@ -1,0 +1,42 @@
+SELECT 
+    --AG info
+    AGName                          = ag.name, 
+    ReplicaServer                   = ar.replica_server_name, 
+    DbName                          = adc.database_name, 
+    -- Queue Size & rates
+    SendQueueSize                   = drs.log_send_queue_size,
+    RedoQueueSize                   = drs.redo_queue_size, 
+    SendRateKb                      = drs.log_send_rate, 
+    RedoRateKb                      = drs.redo_rate, 
+    -- State Info
+    IsLocal                         = drs.is_local, 
+    IsPrimary                       = drs.is_primary_replica, 
+    SynchronizationState            = drs.synchronization_state_desc, 
+    SynchronizationHealthState      = drs.synchronization_health_desc, 
+    -- Last ____ Time
+    LastSentTime                    = drs.last_sent_time, 
+    LastRedoTime                    = drs.last_redone_time, 
+    LastReceivedTime                = drs.last_received_time, 
+    LastHardenedTime                = drs.last_hardened_time, 
+    LastCommitTime                  = drs.last_commit_time, 
+    -- LSN info
+    RecoveryLSN                     = drs.recovery_lsn, 
+    TruncationLSN                   = drs.truncation_lsn, 
+    LastSentLSN                     = drs.last_sent_lsn, 
+    LastReceivedLSN                 = drs.last_received_lsn, 
+    LastHardenedLSN                 = drs.last_hardened_lsn, 
+    LastRedoneLSN                   = drs.last_redone_lsn, 
+    EndOfLogLSN                     = drs.end_of_log_lsn, 
+    LastCommitLSN                   = drs.last_commit_lsn,
+    --Oh yeah, filestream, too
+    FileStreamSendRate              = drs.filestream_send_rate
+FROM sys.dm_hadr_database_replica_states AS drs
+JOIN sys.availability_databases_cluster AS adc 
+    ON drs.group_id = adc.group_id AND drs.group_database_id = adc.group_database_id
+JOIN sys.availability_groups AS ag
+    ON ag.group_id = drs.group_id
+JOIN sys.availability_replicas AS ar 
+    ON drs.group_id = ar.group_id AND drs.replica_id = ar.replica_id
+ORDER BY 
+    -- ag.name, ar.replica_server_name, adc.database_name;
+    drs.log_send_queue_size + drs.redo_queue_size DESC;
