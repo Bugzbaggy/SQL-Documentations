@@ -135,7 +135,7 @@ IsPrimaryServer DESC;" -ServerInstance "$InstanceName"
        
        }   
 }
-$outputarray | FT
+#$outputarray | FT
 Write-Output $outputarray
 $outputarray | Export-Csv -path "D:\PatchVersionLatest.csv" -nti
 notepad 'D:\PatchVersionLatest.csv'
