@@ -1,14 +1,26 @@
-$servers = Get-Content "C:\Temp\primary.txt"
+<#
+    .NOTES 
+    Name: SQL patching of stand alone servers
+    Author: Renz Marion Bagasbas
+	Modified by: Lexter Gapuz
+	Contributor: Nikolai Ramos
+            
+    .DESCRIPTION 
+        This step will automatically install SQL patch to all stand alone SQL servers
 
-#$sqlpatch = “D:\SQLServer2017-KB5021126-x64.exe” 
+        YOU WILL NEED TO LIST DOWN ALL SQL SERVERS IN THE SOURCE FILE
+#> 
+
+
+$servers = Get-Content "C:\Temp\primary.txt" #List of all stand alone SQL servers
+
+$sqlpatch = “D:\SQLServer2017-KB5021126-x64.exe” #KB file name here
 
 $outputarray = @()
 ForEach($server in $servers){
-    #$Service = Get-service -ComputerName $server | where {($_.displayname -like "SQL Server (*") }
     
-   $SQLService = (Get-service -ComputerName $server | where {($_.displayname -like "SQL Server (*") }).Name
-   $ServerInstanceSplit = $SQLService.Split("$")
-    #$Instance = ($server |% {Get-ChildItem -Path "SQLSERVER:\SQL\$_"}).Name
+    $SQLService = (Get-service -ComputerName $server | where {($_.displayname -like "SQL Server (*") }).Name
+    $ServerInstanceSplit = $SQLService.Split("$")
     $SQLVersion = (Invoke-Sqlcmd -Query "SELECT SUBSTRING(@@VERSION,0,53);" -ServerInstance $InstanceName).Column1
     $LogTime = Get-Date -Format "yyyy-MM-dd hh:mm:ss"
     $InstanceName = $server + '\' + $ServerInstanceSplit[1]
@@ -27,7 +39,7 @@ ForEach($server in $servers){
         Start-Service -Name $SQLService
         $proc=Get-WmiObject -list Win32_Process -EnableAllPrivileges -computer $server
         $proc.create("$sqlpatch /action=patch /allinstances /IAcceptSQLServerLicenseTerms /Quiet")
-        #& $sqlpatch /qs /IAcceptSQLServerLicenseTerms /Action=Patch /AllInstances
+
 
        }
        ElseIf($Service.Status -eq "Running"){
@@ -36,6 +48,13 @@ ForEach($server in $servers){
         $proc.create("$sqlpatch /action=patch /allinstances /IAcceptSQLServerLicenseTerms /Quiet")
         
        }
+	  
+	    $StartDate = Get-Date
+		Write-Host "
+		##########################################
+		Patch installattion initiated...
+		Time Script Started $StartDate
+		Kindly execute post validation script after several minutes" -ForegroundColor Green
     
     }
    #Write-Output $outputarray

@@ -1,15 +1,23 @@
-$servers = Get-Content "C:\Temp\sa.txt"
+<#
+    .NOTES 
+    Name: Pre-validation script
+    Author: Renz Marion Bagasbas
+	Modified by: Lexter Gapuz
+	Contributor: Nikolai Ramos
+        
+    .DESCRIPTION 
+        Pre-validation script to check database status and current SQL version. This will also generate a report for the current SQL version that will be used for cross checking.
 
-#$sqlpatch = “D:\SQLServer2017-KB5021126-x64.exe” 
+        YOU WILL NEED TO LIST DOWN ALL SQL SERVERS IN THE SOURCE FILE
+#> 
+
+$servers = Get-Content "C:\Temp\sa.txt" #List of all stand alone SQL servers
 
 $outputarray = @()
 $InstanceName = @()
 ForEach($server in $servers){
-    #$Service = Get-service -ComputerName $server | where {($_.displayname -like "SQL Server (*") }
     
-   $SQLServices = (Get-service -ComputerName $server | where {($_.displayname -like "SQL Server (*") }).Name
-   
-    #$Instance = ($server |% {Get-ChildItem -Path "SQLSERVER:\SQL\$_"}).Name
+    $SQLServices = (Get-service -ComputerName $server | where {($_.displayname -like "SQL Server (*") }).Name
     $SQLVersion = (Invoke-Sqlcmd -Query "SELECT SUBSTRING(@@VERSION,0,68);" -ServerInstance $InstanceName).Column1
     $LogTime = Get-Date -Format "yyyy-MM-dd hh:mm:ss"
 
@@ -17,11 +25,8 @@ ForEach($server in $servers){
     $ServerInstanceSplit = $SQLService.Split("$")
     $InstanceName += $server + '\' + $ServerInstanceSplit[1]
     }
-	
-		
+			
 	ForEach($Instance in $InstanceName){
-       
-       #If($InstanceName -eq $DBstate.DBName){
 
        $DBstates = Invoke-Sqlcmd -Query "SELECT name as DBName, state_desc AS Status
 	    FROM sys.databases db
@@ -39,7 +44,7 @@ ForEach($server in $servers){
     #}
 #outputarray | FT
 Write-Output $outputarray
-$outputarray | Export-Csv -path "D:\SA_PatchVersionLatest.csv" -nti
-notepad 'D:\SA_PatchVersionLatest.csv'
+$outputarray | Export-Csv -path "D:\SA_PatchVersionCurrent.csv" -nti
+notepad 'D:\SA_PatchVersionCurrent.csv'
    
    

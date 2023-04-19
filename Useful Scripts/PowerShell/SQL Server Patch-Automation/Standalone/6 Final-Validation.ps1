@@ -1,13 +1,25 @@
-$servers = Get-Content "C:\Temp\sa.txt"
+<#
+    .NOTES 
+    Name: Final validation script
+    Author: Renz Marion Bagasbas
+	Modified by: Lexter Gapuz
+	Contributor: Nikolai Ramos
+    
+    .DESCRIPTION 
+        Final validation script to check database status and automatically generate a report for successful patch installation.
 
-#$sqlpatch = “D:\SQLServer2017-KB5021126-x64.exe” 
+        YOU WILL NEED TO LIST DOWN ALL SQL SERVERS IN THE SOURCE FILE
+#> 
+
+
+$servers = Get-Content "C:\Temp\sa.txt" #List of all stand alone SQL servers
 
 $outputarray = @()
 $InstanceName = @()
 ForEach($server in $servers){
     #$Service = Get-service -ComputerName $server | where {($_.displayname -like "SQL Server (*") }
     
-   $SQLServices = (Get-service -ComputerName $server | where {($_.displayname -like "SQL Server (*") }).Name
+    $SQLServices = (Get-service -ComputerName $server | where {($_.displayname -like "SQL Server (*") }).Name
    
     #$Instance = ($server |% {Get-ChildItem -Path "SQLSERVER:\SQL\$_"}).Name
     $SQLVersion = (Invoke-Sqlcmd -Query "SELECT SUBSTRING(@@VERSION,0,68);" -ServerInstance $InstanceName).Column1
@@ -18,7 +30,6 @@ ForEach($server in $servers){
     $InstanceName += $server + '\' + $ServerInstanceSplit[1]
     }
 	
-		
 	ForEach($Instance in $InstanceName){
        
        #If($InstanceName -eq $DBstate.DBName){
