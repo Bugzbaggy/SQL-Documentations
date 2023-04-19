@@ -1,20 +1,21 @@
 <#
     .NOTES 
-    Name: Resume data movement
+    Name: Modify Availability Groups failover mode from Manual to Automatic
     Author: Renz Marion Bagasbas
 	Modified by: Lexter Gapuz
 	Contributor: Nikolai Ramos
         
     .DESCRIPTION 
-        This step will resume data movement of all secondary replicas then automatically execute validation after
+        This step is the final task and automatically generate a report for successful patch installation.
 
         YOU WILL NEED TO LIST DOWN JUST ONE NODE PER AVAILABILITY GROUP IN THE SOURCE FILE TO AVOID DUPLICATIONS
 #> 
 
+
 #Import-Module SQLPS -DisableNameChecking
 #Install-Module SQLSERVER -Force -AllowCLobber 
 #Import-Module SQLSERVER #$env:PSModulePath
-$servers = Get-Content "C:\Temp\primary.txt" #Only one node per AG is required in the source file. This script will automatically detect availability replica role.
+$servers = Get-Content "C:\Temp\primary.txt" #Only one node per AG is required in the source file. This script will automatically detect availability replica role. 
 
 $outputarray = @()
 Foreach($server in $servers){
@@ -23,7 +24,7 @@ $SQLService = (Get-service -ComputerName $server | where {($_.displayname -like 
 $ServerInstanceSplit = $SQLService.Split("$")
 $InstanceName = $server + '\' + $ServerInstanceSplit[1]
 $SQLVersion = Invoke-Sqlcmd -Query "SELECT SUBSTRING(@@VERSION,0,68);" -ServerInstance $InstanceName
-
+$LogTime = Get-Date -Format "yyyy-MM-dd hh:mm:ss"
 
 $AGstates = Invoke-Sqlcmd -Query "WITH AGStatus AS(
 SELECT
@@ -75,19 +76,31 @@ IsPrimaryServer DESC;" -ServerInstance "$InstanceName"
 
         $InstanceSplit = $AGstate.Instance.Split('\')
         $AGNode = ($InstanceSplit[0])
-
-        If($AGNode -eq $SecondaryInstance.Split('\')[0]){
-        $AvailabilityDB = "SQLSERVER:\Sql\$SecondaryInstance\AvailabilityGroups\$($AGstate.AGname)\AvailabilityDatabases” 
-        Get-ChildItem $AvailabilityDB | Resume-SqlAvailabilityDatabase #Resume or Suspend
-        
-            
-       }
-       }
-        Start-Sleep -s 2 ##Allow delay 
-        ####Test availability database replica state health####
-        #$AGReplicaStatePath = "SQLSERVER:\Sql\$PrimaryInstance\AvailabilityGroups\$($AGstate.AGname)\DatabaseReplicaStates" 
-        #Get-ChildItem $AGReplicaStatePath | Test-SqlDatabaseReplicaState
-$AGValidates = Invoke-Sqlcmd -Query "WITH AGStatus AS(
+      
+             
+      
+      If($AGNode -eq $PrimaryInstance.Split('\')[0] -or $AGNode -eq $SecondaryInstance.Split('\')[0]){
+        Set-Location SQLSERVER:\Sql
+        $query1 = "USE [master]
+        GO
+        ALTER AVAILABILITY GROUP [$($AGstate.AGname)]
+        MODIFY REPLICA ON N'$($PrimaryInstance)' WITH (FAILOVER_MODE = AUTOMATIC) #Change to MANUAL or AUTOMATIC
+        GO
+        USE [master]
+        GO
+        ALTER AVAILABILITY GROUP [$($AGstate.AGname)]
+        MODIFY REPLICA ON N'$($SecondaryInstance)' WITH (FAILOVER_MODE = AUTOMATIC) #Change to MANUAL or AUTOMATIC
+        GO";
+        Invoke-Sqlcmd -ServerInstance $PrimaryInstance -Query $query1
+        }
+	
+	Write-Host "
+		##########################################
+		Failover mode of all availability replicas
+		has been reverted from Manual to Automatic ." -ForegroundColor Green      
+    }
+    
+    $AGValidates = Invoke-Sqlcmd -Query "WITH AGStatus AS(
 SELECT
 name as AGname,
 Replica_Server_Name,
@@ -122,7 +135,7 @@ FROM AGStatus
 ORDER BY
 AGname ASC,
 IsPrimaryServer DESC;" -ServerInstance "$InstanceName"
-Foreach($AGValidate in $AGValidates){
+    Foreach($AGValidate in $AGValidates){
     
        $Objt = New-Object PSObject
        $Objt | Add-Member -MemberType NoteProperty -Name AGname -Value $AGValidate.AGname
@@ -132,14 +145,13 @@ Foreach($AGValidate in $AGValidates){
        $Objt | Add-Member -MemberType NoteProperty -Name Synchronous -Value $AGValidate.Synchronous
        $Objt | Add-Member -MemberType NoteProperty -Name ReadableSecondary -Value $AGValidate.ReadableSecondary
        $Objt | Add-Member -MemberType NoteProperty -Name FailoverMode -Value $AGValidate.FailoverMode
+	   $Objt | Add-Member -MemberType NoteProperty -Name LogTime -Value $LogTime
        $Objt | Add-Member -MemberType NoteProperty -Name SQLVersion -Value $SQLVersion.Column1
        $outputarray += $Objt
        
-       }
-
+       }   
 }
-$outputarray | FT
-     
-
-
-#| Sort-Object $AGstate.Instance
+#$outputarray | FT
+Write-Output $outputarray
+$outputarray | Export-Csv -path "D:\PatchVersionLatest.csv" -nti
+notepad 'D:\PatchVersionLatest.csv'

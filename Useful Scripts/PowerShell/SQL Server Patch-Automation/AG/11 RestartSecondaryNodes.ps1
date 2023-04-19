@@ -1,7 +1,20 @@
+<#
+    .NOTES 
+    Name: Restart secondary replica servers
+    Author: Renz Marion Bagasbas
+	Modified by: Lexter Gapuz
+	Contributor: Nikolai Ramos
+        
+    .DESCRIPTION 
+        Automatically restart servers after SQL patch installation
+
+        YOU WILL NEED TO LIST DOWN JUST ONE NODE PER AVAILABILITY GROUP IN THE SOURCE FILE TO AVOID DUPLICATIONS
+#>
+
 #Import-Module SQLPS -DisableNameChecking
 #Install-Module SQLSERVER -Force -AllowCLobber 
 #Import-Module SQLSERVER #$env:PSModulePath
-$servers = Get-Content "C:\Temp\primary.txt"
+$servers = Get-Content "C:\Temp\primary.txt" #Only one node per AG is required in the source file. This script will automatically detect availability replica role.
 
 $outputarray = @()
 Foreach($server in $servers){
@@ -68,6 +81,10 @@ IsPrimaryServer DESC;" -ServerInstance "$InstanceName"
                     
        }
        }
-   
+    Write-Host "
+		##########################################
+		All secondary nodes has been rebooted...
+		Kindly execute step 12 next
+		to resume data movement of all secondary nodes" -ForegroundColor Green
 }
 

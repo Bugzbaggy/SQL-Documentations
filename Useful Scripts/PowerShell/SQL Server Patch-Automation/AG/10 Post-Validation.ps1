@@ -1,5 +1,18 @@
+<#
+    .NOTES 
+    Name: Post-validation script
+    Author: Renz Marion Bagasbas
+	Modified by: Lexter Gapuz
+	Contributor: Nikolai Ramos
+    
+    .DESCRIPTION 
+        Post-validation script to check if all secondary replicas data movement has been suspended and latest SQL patch are installed.
+
+        YOU WILL NEED TO LIST DOWN JUST ONE NODE PER AVAILABILITY GROUP IN THE SOURCE FILE TO AVOID DUPLICATIONS
+#> 
+
 #Import-Module SQLPS -DisableNameChecking
-$servers = Get-Content "C:\Temp\primary.txt"
+$servers = Get-Content "C:\Temp\primary.txt" #Only one node per AG is required in the source file. This script will automatically detect availability replica role.
 
 $outputarray = @()
 Foreach($server in $servers){

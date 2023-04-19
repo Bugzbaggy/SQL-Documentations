@@ -1,5 +1,19 @@
+<#
+    .NOTES 
+    Name: Pre-validation script
+    Author: Renz Marion Bagasbas
+	Modified by: Lexter Gapuz
+	Contributor: Nikolai Ramos
+        
+    .DESCRIPTION 
+        Pre-validation script to check database status and current SQL version. This will also generate a report for the current SQL version that will be used for cross checking.
+
+        YOU WILL NEED TO LIST DOWN JUST ONE NODE PER AVAILABILITY GROUP IN THE SOURCE FILE TO AVOID DUPLICATIONS
+#> 
+
+
 #Import-Module SQLPS -DisableNameChecking
-$servers = Get-Content "C:\Temp\primary.txt"
+$servers = Get-Content "C:\Temp\primary.txt" #Only one node per AG is required in the source file. This script will automatically detect availability replica role.
 
 $outputarray = @()
 Foreach($server in $servers){
@@ -59,12 +73,9 @@ IsPrimaryServer DESC;" -ServerInstance "$InstanceName"
 	   $Objt | Add-Member -MemberType NoteProperty -Name LogTime -Value $LogTime
        $Objt | Add-Member -MemberType NoteProperty -Name SQLVersion -Value $SQLVersion.Column1
        $outputarray += $Objt
-
-      
        }
-
 }
-$outputarray | FT
+#$outputarray | FT
  Write-Output $outputarray
- $outputarray | Export-Csv -path "D:\PatchVersionPrevious.csv" -nti
- notepad 'D:\PatchVersionPrevious.csv'
+ $outputarray | Export-Csv -path "D:\PatchVersionCurrent.csv" -nti
+ notepad 'D:\PatchVersionCurrent.csv'

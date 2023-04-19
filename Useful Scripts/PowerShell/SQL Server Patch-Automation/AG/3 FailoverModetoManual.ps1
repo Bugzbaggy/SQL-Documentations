@@ -1,7 +1,20 @@
+<#
+    .NOTES 
+    Name: Modify Availability Groups failover mode from Automatic to Manual
+    Author: Renz Marion Bagasbas
+	Modified by: Lexter Gapuz
+	Contributor: Nikolai Ramos
+        
+    .DESCRIPTION 
+        This step is a pre-task before installing patch for SQL servers participating in Always On Availability Groups
+
+        YOU WILL NEED TO LIST DOWN JUST ONE NODE PER AVAILABILITY GROUP IN THE SOURCE FILE TO AVOID DUPLICATIONS
+#> 
+
 #Import-Module SQLPS -DisableNameChecking
 #Install-Module SQLSERVER -Force -AllowCLobber 
 #Import-Module SQLSERVER #$env:PSModulePath
-$servers = Get-Content "C:\Temp\primary.txt"
+$servers = Get-Content "C:\Temp\primary.txt" #Only one node per AG is required in the source file. This script will automatically detect availability replica role. 
 
 $outputarray = @()
 Foreach($server in $servers){
@@ -79,9 +92,11 @@ IsPrimaryServer DESC;" -ServerInstance "$InstanceName"
         GO";
         Invoke-Sqlcmd -ServerInstance $PrimaryInstance -Query $query1
         }
-
-        
-       
+    
+		Write-Host "
+		##########################################
+		Failover mode of all availability replicas
+		has been changed from Automatic to Manual." -ForegroundColor Green   
     }
     
     $AGValidates = Invoke-Sqlcmd -Query "WITH AGStatus AS(

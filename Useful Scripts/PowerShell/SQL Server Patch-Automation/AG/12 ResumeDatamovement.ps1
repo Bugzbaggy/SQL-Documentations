@@ -1,7 +1,20 @@
+<#
+    .NOTES 
+    Name: Resume data movement
+    Author: Renz Marion Bagasbas
+	Modified by: Lexter Gapuz
+	Contributor: Nikolai Ramos
+        
+    .DESCRIPTION 
+        This step will resume data movement of all secondary replicas then automatically execute validation after
+
+        YOU WILL NEED TO LIST DOWN JUST ONE NODE PER AVAILABILITY GROUP IN THE SOURCE FILE TO AVOID DUPLICATIONS
+#> 
+
 #Import-Module SQLPS -DisableNameChecking
 #Install-Module SQLSERVER -Force -AllowCLobber 
 #Import-Module SQLSERVER #$env:PSModulePath
-$servers = Get-Content "C:\Temp\primary.txt"
+$servers = Get-Content "C:\Temp\primary.txt" #Only one node per AG is required in the source file. This script will automatically detect availability replica role.
 
 $outputarray = @()
 Foreach($server in $servers){
@@ -72,7 +85,7 @@ IsPrimaryServer DESC;" -ServerInstance "$InstanceName"
        }
         Start-Sleep -s 2 ##Allow delay 
         ####Test availability database replica state health####
-        #$AGReplicaStatePath = "SQLSERVER:\Sql\$PrimaryInstance\AvailabilityGroups\$($AGstate.AGname)\DatabaseReplicaStates" 
+        #$AGReplicaStatePath = "SQLSERVER:\Sql\$PrimaryInstance\AvailabilityGroups\$($AGstate.AGname)\DatabaseReplicaStates#" 
         #Get-ChildItem $AGReplicaStatePath | Test-SqlDatabaseReplicaState
 $AGValidates = Invoke-Sqlcmd -Query "WITH AGStatus AS(
 SELECT

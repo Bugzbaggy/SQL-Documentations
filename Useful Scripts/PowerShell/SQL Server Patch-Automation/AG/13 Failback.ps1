@@ -1,7 +1,21 @@
+<#
+    .NOTES 
+    Name: Failback
+    Author: Renz Marion Bagasbas
+	Modified by: Lexter Gapuz
+	Contributor: Nikolai Ramos
+        
+    .DESCRIPTION 
+        This script will initiate failback
+
+        YOU WILL NEED TO LIST DOWN JUST ONE NODE PER AVAILABILITY GROUP IN THE SOURCE FILE TO AVOID DUPLICATIONS
+#>
+
 #Import-Module SQLPS -DisableNameChecking
 #Install-Module SQLSERVER -Force -AllowCLobber 
 #Import-Module SQLSERVER #$env:PSModulePath
-$servers = Get-Content "C:\Temp\primary.txt"
+$servers = Get-Content "C:\Temp\primary.txt" #Only one node per AG is required in the source file. This script will automatically detect availability replica role.
+
 
 $outputarray = @()
 Foreach($server in $servers){
@@ -76,6 +90,11 @@ IsPrimaryServer DESC;" -ServerInstance "$InstanceName"
        
     }
     Start-Sleep -s 2 ##Allow delay
+	Write-Host "
+		##########################################
+		Failback succeeded...
+		Kindly check result below and then execute step 13 once validated." -ForegroundColor Green
+	
     $AGValidates = Invoke-Sqlcmd -Query "WITH AGStatus AS(
 SELECT
 name as AGname,

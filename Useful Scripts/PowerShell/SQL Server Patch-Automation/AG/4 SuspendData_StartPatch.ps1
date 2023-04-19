@@ -1,7 +1,20 @@
+<#
+    .NOTES 
+    Name: Suspend data movement and apply patch
+    Author: Renz Marion Bagasbas
+	Modified by: Lexter Gapuz
+	Contributor: Nikolai Ramos
+        
+    .DESCRIPTION 
+        This step will suspend data movement of all secondary replicas then install SQL patch right after
+
+        YOU WILL NEED TO LIST DOWN JUST ONE NODE PER AVAILABILITY GROUP IN THE SOURCE FILE TO AVOID DUPLICATIONS
+#> 
+
 #Import-Module SQLPS -DisableNameChecking
 #Install-Module SQLSERVER -Force -AllowCLobber 
 #Import-Module SQLSERVER #$env:PSModulePath
-$servers = Get-Content "C:\Temp\primary.txt"
+$servers = Get-Content "C:\Temp\primary.txt" #Only one node per AG is required in the source file. This script will automatically detect availability replica role.
 
 $outputarray = @()
 Foreach($server in $servers){
@@ -84,7 +97,13 @@ IsPrimaryServer DESC;" -ServerInstance "$InstanceName"
         ####Test availability database replica state health####
         #$AGReplicaStatePath = "SQLSERVER:\Sql\$PrimaryInstance\AvailabilityGroups\$($AGstate.AGname)\DatabaseReplicaStates" 
         #Get-ChildItem $AGReplicaStatePath | Test-SqlDatabaseReplicaState
-
+		
+		$StartDate = Get-Date
+		Write-Host "
+		##########################################
+		Patch installattion initiated...
+		Time Script Started $StartDate
+		Kindly execute step 5 post validation script after several minutes" -ForegroundColor Green
 }
 #$outputarray | FT
      
