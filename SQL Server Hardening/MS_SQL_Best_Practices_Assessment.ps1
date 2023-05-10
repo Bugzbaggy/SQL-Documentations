@@ -22,7 +22,7 @@ ForEach($server in $dbservers){
         $StartDate = Get-Date
 		Write-Host "
 		##########################################
-		SQL Assessment initiated...
+		SQL Vulnerability Assessment initiated for $InstanceName...
 		Time Script Started $StartDate" -ForegroundColor Green
 
        If($Service.Status -ne "Running"){
@@ -31,12 +31,14 @@ ForEach($server in $dbservers){
         # Running server scope rules
 		Get-SqlInstance -ServerInstance $($InstanceName) | 
 		Invoke-SqlAssessment -FlattenOutput |
-		Write-SqlTableData -ServerInstance 'azsapqdb01\QE2DB' -DatabaseName SQLAssessment -SchemaName bpc -TableName Results -Force #Change the SQL server instance preferred
+		Write-SqlTableData -ServerInstance 'azsapqdb01\QE2DB' -DatabaseName SQLAssessment -SchemaName bpc -TableName Results -Force
+        #Change the SQL server instance for the preferred location of assessment result
 
 		# Running database scope rules
 		Get-SqlDatabase -ServerInstance $($InstanceName) | 
 		Invoke-SqlAssessment -FlattenOutput |
-		Write-SqlTableData -ServerInstance 'azsapqdb01\QE2DB' -DatabaseName SQLAssessment -SchemaName bpc -TableName Results -Force #Change the SQL server instance preferred
+		Write-SqlTableData -ServerInstance 'azsapqdb01\QE2DB' -DatabaseName SQLAssessment -SchemaName bpc -TableName Results -Force 
+        #Change the SQL server instance for the preferred location of assessment result
 
        }
        ElseIf($Service.Status -eq "Running"){
@@ -45,19 +47,21 @@ ForEach($server in $dbservers){
 		Get-SqlInstance -ServerInstance $($InstanceName) | 
 		Invoke-SqlAssessment -FlattenOutput |
 		Write-SqlTableData -ServerInstance 'azsapqdb01\QE2DB' -DatabaseName SQLAssessment -SchemaName bpc -TableName Results -Force
+		#Change the SQL server instance for the preferred location of assessment result
 
 		# Running database scope rules
 		Get-SqlDatabase -ServerInstance $($InstanceName) | 
 		Invoke-SqlAssessment -FlattenOutput |
 		Write-SqlTableData -ServerInstance 'azsapqdb01\QE2DB' -DatabaseName SQLAssessment -SchemaName bpc -TableName Results -Force
-        
+        #Change the SQL server instance for the preferred location of assessment result
+		
        }
 	
     $EndDate = Get-Date
     $Time = $EndDate - $StartDate
     Write-Host "
     ##########################################
-    Assessment results saved...
+    Assessment results for $InstanceName saved...
     Time Script ended at $EndDate and took
     $Time" -ForegroundColor Green	  
     
