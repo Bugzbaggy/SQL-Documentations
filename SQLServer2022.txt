@@ -1,0 +1,35 @@
+Learn more about SQL Server 2022
+aka.ms/sqlserver2022
+
+Learn more about SQL Server 2022
+aka.ms/sqlserver2022
+
+Get our decks
+aka.ms/sqlserver2022decks
+
+What’s new for SQL Server 2022
+aka.ms/sqlserver2022docs
+
+Read the book
+aka.ms/sql2022book
+
+Try out the workshop
+aka.ms/sql2022workshop
+
+Try our demos
+aka.ms/sqlserver2022demos
+
+Watch Microsoft Mechanics
+aka.ms/sqlserver2022mechanics
+
+Don’t miss us on Data Exposed
+aka.ms/dataexposed
+
+Read the SQL Server 2022 Blog Series
+aka.ms/sqlserver2022blogs
+
+Take the Microsoft Learning Path
+aka.ms/learnsqlserver2022
+
+
+

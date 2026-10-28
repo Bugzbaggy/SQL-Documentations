@@ -1,0 +1,22 @@
+resources
+| where type =~ "Microsoft.Network/networkInterfaces"
+| extend  primaryIP = properties.ipConfigurations[0].properties.privateIPAddress, 
+    SecondaryIPName = properties.ipConfigurations[1].name,
+    secondaryIsStatic = properties.ipConfigurations[1].properties.privateIPAllocationMethod,
+    secondaryIP = properties.ipConfigurations[1].properties.privateIPAddress
+| project name, resourceGroup, primaryIP, SecondaryIPName, secondaryIsStatic, secondaryIP
+
+
+
+resources
+| where subscriptionId =~ "cbb944ea-aa79-4701-909a-e114ab57ad7a"
+| where resourceGroup =~ "sap-qe2-qa-rg"
+| where type =~ "Microsoft.Network/networkInterfaces"
+| extend  primaryIP = properties.ipConfigurations[0].properties.privateIPAddress, 
+    SecondaryIPName = properties.ipConfigurations[1].name,
+    secondaryIsStatic = properties.ipConfigurations[1].properties.privateIPAllocationMethod,
+    secondaryIP = properties.ipConfigurations[1].properties.privateIPAddress,
+    SecondaryIPName2 = properties.ipConfigurations[2].name,
+    secondaryIsStatic2 = properties.ipConfigurations[2].properties.privateIPAllocationMethod,
+    secondaryIP2 = properties.ipConfigurations[2].properties.privateIPAddress
+| project name, resourceGroup, primaryIP, SecondaryIPName, secondaryIP, SecondaryIPName2,secondaryIP2
